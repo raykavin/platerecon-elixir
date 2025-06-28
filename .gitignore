@@ -1,0 +1,68 @@
+# The directory Mix will write compiled artifacts to.
+/_build/
+
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
+
+# The directory Mix downloads your dependencies sources to.
+/deps/
+
+# Where third-party dependencies like ExDoc output generated docs.
+/doc/
+
+# Ignore .fetch files in case you like to edit your project deps locally.
+/.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
+*.ez
+
+# Ignore package tarball (built via "mix hex.build").
+plate_reader_system-*.tar
+
+# Temporary files, for example, from tests.
+/tmp/
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignore logs
+/logs/
+*.log
+
+# Ignore models (they can be large)
+/priv/models/*.onnx
+/priv/models/*.pt
+/priv/models/*.pth
+/priv/models/*.weights
+
+# Keep the models directory
+!/priv/models/.gitkeep
+
+# Ignore compiled binaries
+/priv/opencv_capture
+/priv/*.so
+/priv/*.dll
+/priv/*.dylib
+
+# Ignore test images except examples
+/priv/test_images/*
+!/priv/test_images/example_*.jpg
+
+# Environment variables
+.env
+.env.*
+
+# Ignore Elixir LS
+/.elixir_ls/
+
+# Ignore dialyzer files
+/priv/plts/*.plt
+/priv/plts/*.plt.hash

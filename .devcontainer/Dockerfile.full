@@ -1,0 +1,108 @@
+# Base image with Elixir and Erlang
+FROM hexpm/elixir:1.14.5-erlang-25.3.2-ubuntu-jammy-20230126
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build essentials
+    build-essential \
+    cmake \
+    pkg-config \
+    # Git
+    git \
+    curl \
+    wget \
+    # OpenCV dependencies
+    libopencv-dev \
+    python3-opencv \
+    # Tesseract OCR
+    tesseract-ocr \
+    tesseract-ocr-por \
+    tesseract-ocr-eng \
+    libtesseract-dev \
+    # FFmpeg for RTSP
+    ffmpeg \
+    # Video/Camera support
+    v4l-utils \
+    libv4l-dev \
+    # Fish shell
+    fish \
+    # Development tools
+    inotify-tools \
+    postgresql-client \
+    # Editor support
+    vim \
+    nano \
+    # Utils
+    htop \
+    tree \
+    jq \
+    # Locale
+    locales \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# Create non-root user
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && apt-get update \
+    && apt-get install -y sudo \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Install Rust (needed for some Elixir NIFs)
+USER $USERNAME
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/home/${USERNAME}/.cargo/bin:${PATH}"
+
+# Install Fish shell plugins
+RUN fish -c "curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher"
+RUN fish -c "fisher install jethrokuan/z"
+RUN fish -c "fisher install PatrickF1/fzf.fish"
+RUN fish -c "fisher install jorgebucaran/nvm.fish"
+
+# Set up Elixir/Erlang for the user
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+# Install global Elixir tools
+RUN mix archive.install hex phx_new --force && \
+    mix escript.install hex livebook --force
+
+# Set up working directory
+WORKDIR /workspaces/plate_reader_system
+
+# Copy and compile OpenCV helper
+COPY --chown=$USERNAME:$USERNAME src/opencv_capture.cpp /tmp/
+RUN sudo g++ -o /usr/local/bin/opencv_capture /tmp/opencv_capture.cpp \
+    $(pkg-config --cflags --libs opencv4) \
+    -std=c++11 && \
+    sudo chmod +x /usr/local/bin/opencv_capture && \
+    rm /tmp/opencv_capture.cpp
+
+# Set environment variables
+ENV MIX_ENV=dev
+ENV ERL_AFLAGS="-kernel shell_history enabled"
+ENV HISTFILE=/home/$USERNAME/.bash_history
+
+# Fish shell configuration
+COPY --chown=$USERNAME:$USERNAME .devcontainer/config.fish /home/$USERNAME/.config/fish/config.fish
+
+# Set fish as default shell
+RUN sudo chsh -s /usr/bin/fish $USERNAME
+
+# Expose ports
+EXPOSE 4000 4001
+
+# Start with fish shell
+CMD ["fish"]

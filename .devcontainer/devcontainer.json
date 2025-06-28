@@ -1,0 +1,126 @@
+{
+    "name": "Plate Reader System DevContainer (Elixir)",
+    "workspaceFolder": "/workspaces/plate_reader_system",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "forwardPorts": [
+        4000,
+        4001,
+        8080
+    ],
+    "runArgs": [
+        "--network=host",
+        "--device=/dev/video0",
+        "--group-add=video",
+        "--cap-add=SYS_ADMIN"
+    ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "PULSE_SERVER": "unix:/run/user/1000/pulse/native"
+    },
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspaces/plate_reader_system,type=bind,consistency=cached",
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+        "source=/dev/bus/usb,target=/dev/bus/usb,type=bind",
+        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly"
+    ],
+    "remoteUser": "vscode",
+    "postCreateCommand": "mix deps.get && mix compile && git config --global --add safe.directory /workspaces/plate_reader_system && bash .devcontainer/post-create.sh",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "moby": true,
+            "dockerDashComposeVersion": "v2"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "JakeBecker.elixir-ls",
+                "phoenixframework.phoenix",
+                "bradlc.vscode-tailwindcss",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode.hexeditor",
+                "ms-ceintl.vscode-language-pack-pt-br",
+                "streetsidesoftware.code-spell-checker",
+                "streetsidesoftware.code-spell-checker-portuguese-brazilian",
+                "visualstudioexptteam.vscodeintellicode",
+                "visualstudioexptteam.intellicode-api-usage-examples",
+                "redhat.vscode-yaml",
+                "bmalehorn.vscode-fish",
+                "eamodio.gitlens",
+                "mhutchie.git-graph",
+                "donjayamanne.githistory",
+                "formulahendry.auto-rename-tag",
+                "naumovs.color-highlight",
+                "wayou.vscode-todo-highlight",
+                "gruntfuggly.todo-tree",
+                "yzhang.markdown-all-in-one",
+                "bierner.markdown-mermaid",
+                "davidanson.vscode-markdownlint"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "fish",
+                "terminal.integrated.profiles.linux": {
+                    "fish": {
+                        "path": "/usr/bin/fish",
+                        "icon": "terminal-fish"
+                    }
+                },
+                "elixirLS.suggestSpecs": true,
+                "elixirLS.fetchDeps": true,
+                "elixirLS.mixEnv": "dev",
+                "elixirLS.dialyzerEnabled": true,
+                "elixirLS.signatureAfterComplete": true,
+                "elixirLS.enableTestLenses": true,
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "JakeBecker.elixir-ls",
+                "[elixir]": {
+                    "editor.defaultFormatter": "JakeBecker.elixir-ls",
+                    "editor.wordBasedSuggestions": false,
+                    "editor.acceptSuggestionOnEnter": "on"
+                },
+                "files.watcherExclude": {
+                    "**/_build/**": true,
+                    "**/deps/**": true,
+                    "**/.elixir_ls/**": true
+                },
+                "files.associations": {
+                    "*.exs": "elixir",
+                    "*.ex": "elixir",
+                    "*.heex": "phoenix-heex"
+                },
+                "emmet.includeLanguages": {
+                    "phoenix-heex": "html"
+                },
+                "tailwindCSS.includeLanguages": {
+                    "elixir": "html",
+                    "phoenix-heex": "html"
+                },
+                "workbench.colorTheme": "Default Dark+",
+                "workbench.iconTheme": "vscode-icons",
+                "git.autofetch": true,
+                "git.enableSmartCommit": true,
+                "gitlens.hovers.currentLine.over": "line",
+                "todo-tree.general.tags": [
+                    "BUG",
+                    "HACK",
+                    "FIXME",
+                    "TODO",
+                    "XXX",
+                    "[ ]",
+                    "[x]"
+                ],
+                "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^\\s*(-|\\d+.))\\s*($TAGS)"
+            }
+        }
+    },
+    "remoteEnv": {
+        "PATH": "/home/vscode/.cargo/bin:${containerEnv:PATH}"
+    },
+    "postStartCommand": "sudo chown vscode:vscode /dev/video0 2>/dev/null || true"
+}
+
